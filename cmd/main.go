@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	_ "modernc.org/sqlite"
@@ -34,11 +35,21 @@ type Entry struct {
 }
 
 type LookupResult struct {
+	ID         string  `json:"id"`
 	Dictionary string  `json:"dictionary"`
 	FullName   string  `json:"full_name"`
 	Entries    []Entry `json:"entries"`
 }
 
+// ---- global list of loaded dictionaries ----
+
+type GlobalConfig struct {
+	Priority []string `json:"priority"`
+}
+
+var globalConfig GlobalConfig
+
+// ---- Start of code ----
 var dictionaries []Dictionary
 
 // ---- load all dictionaries from resources/ ----
@@ -159,6 +170,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			resultsCh <- resultWrap{
 				Ok: true,
 				Res: LookupResult{
+					ID:         d.Manifest.ID,
 					Dictionary: d.Manifest.ShortName,
 					FullName:   d.Manifest.FullName,
 					Entries:    entries,
@@ -188,18 +200,42 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// ---- NEW: sort results before response ----
+	order := make(map[string]int)
+
+	for i, id := range globalConfig.Priority {
+		order[id] = i
+	}
+	const big = 1_000_000
+	sort.Slice(results, func(i, j int) bool {
+		oi, okI := order[results[i].ID]
+		oj, okJ := order[results[j].ID]
+
+		if !okI {
+			oi = big
+		}
+		if !okJ {
+			oj = big
+		}
+
+		return oi < oj
+	})
+
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(w).Encode(results)
 }
 
 func main() {
+	loadConfig("config.json")
+
 	if err := loadDictionaries("resources"); err != nil {
 		log.Fatal("failed to load dictionaries:", err)
 	}
+	applyPriorityOrder()
 
 	log.Printf("Loaded %d dictionaries\n", len(dictionaries))
 
-  http.Handle("/lookup", corsMiddleware(http.HandlerFunc(lookupHandler)))
+	http.Handle("/lookup", corsMiddleware(http.HandlerFunc(lookupHandler)))
 
 	fmt.Println("Listening at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -215,5 +251,24 @@ func corsMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		next.ServeHTTP(w, r)
+	})
+}
+
+func loadConfig(path string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, &globalConfig)
+}
+
+func applyPriorityOrder() {
+	order := map[string]int{}
+	for i, id := range globalConfig.Priority {
+		order[id] = i
+	}
+
+	sort.Slice(dictionaries, func(i, j int) bool {
+		return order[dictionaries[i].Manifest.ID] < order[dictionaries[j].Manifest.ID]
 	})
 }
