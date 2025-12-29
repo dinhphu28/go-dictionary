@@ -27,7 +27,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	http.HandleFunc("/lookup", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/lookup", func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query().Get("q")
 		q = strings.TrimSpace(q)
 
@@ -58,7 +60,21 @@ func main() {
 		json.NewEncoder(w).Encode(e)
 	})
 
+	handler := corsMiddleware(mux)
+
 	log.Println("Listening on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
 
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
