@@ -8,7 +8,7 @@
 *.so
 *.dylib
 
-assets/dictionary.db
+resources/
 
 # Test binary, built with `go test -c`
 *.test
