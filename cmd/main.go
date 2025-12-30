@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -111,6 +112,12 @@ func loadDictionaries(resourceDir string) error {
 // ---- lookup exact-case-insensitive in one db ----
 
 func lookupInDB(db *sql.DB, word string) ([]Entry, error) {
+  // NOTE: for performance measurement
+	t := time.Now()
+	defer func() {
+		log.Println("single db lookup:", time.Since(t))
+	}()
+
 	rows, err := db.Query(`
 		SELECT headword, html
 		FROM entries
@@ -137,6 +144,12 @@ func lookupInDB(db *sql.DB, word string) ([]Entry, error) {
 // ---- HTTP handler ----
 
 func lookupHandler(w http.ResponseWriter, r *http.Request) {
+  // NOTE: for performance measurement
+	start := time.Now()
+	defer func() {
+		log.Println("lookup total:", time.Since(start))
+	}()
+
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
 	if q == "" {
 		http.Error(w, "missing q parameter", http.StatusBadRequest)
