@@ -2,7 +2,9 @@ package lookup
 
 import (
 	"log"
+	"sort"
 
+	"dinhphu28.com/dictionary/internal/config"
 	"dinhphu28.com/dictionary/internal/database"
 )
 
@@ -12,7 +14,17 @@ type resultWrap struct {
 	Err error
 }
 
-func LookupAllDictionaries(
+func LookupAllDictionariesAndSort(
+	dictionaries []database.Dictionary,
+	q string,
+	globalConfig config.GlobalConfig,
+) []LookupResult {
+	lookupResults := lookupAllDictionaries(dictionaries, q)
+	sortResultsByPriority(lookupResults, globalConfig.Priority)
+	return lookupResults
+}
+
+func lookupAllDictionaries(
 	dictionaries []database.Dictionary,
 	q string,
 ) []LookupResult {
@@ -41,6 +53,31 @@ func LookupAllDictionaries(
 		}
 	}
 	return results
+}
+
+func sortResultsByPriority(
+	results []LookupResult,
+	priority []string,
+) {
+	order := make(map[string]int)
+
+	for i, id := range priority {
+		order[id] = i
+	}
+	const big = 1_000_000
+	sort.Slice(results, func(i, j int) bool {
+		oi, okI := order[results[i].ID]
+		oj, okJ := order[results[j].ID]
+
+		if !okI {
+			oi = big
+		}
+		if !okJ {
+			oj = big
+		}
+
+		return oi < oj
+	})
 }
 
 func runLookup(
