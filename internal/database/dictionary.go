@@ -1,14 +1,12 @@
 // Package internal manifest structure to hold application metadata
-package internal
+package database
 
 import (
 	"database/sql"
-
-	"dinhphu28.com/dictionary/internal/database"
 )
 
 type Dictionary struct {
-	Manifest database.Manifest
+	Manifest Manifest
 	DB       *sql.DB
 	Path     string
 }

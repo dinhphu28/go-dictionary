@@ -8,6 +8,7 @@ import (
 	"dinhphu28.com/dictionary/internal"
 	"dinhphu28.com/dictionary/internal/api"
 	"dinhphu28.com/dictionary/internal/config"
+	"dinhphu28.com/dictionary/internal/database"
 	_ "modernc.org/sqlite"
 )
 
@@ -16,7 +17,7 @@ import (
 var globalConfig config.GlobalConfig
 
 // ---- Start of code ----
-var dictionaries []internal.Dictionary
+var dictionaries []database.Dictionary
 
 func main() {
 	config.LoadConfig("config.json")
