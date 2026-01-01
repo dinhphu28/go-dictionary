@@ -23,10 +23,10 @@ func main() {
 	config.LoadConfig("config.json")
 	globalConfig = config.GetGlobalConfig()
 
-	if err := internal.LoadDictionaries("resources"); err != nil {
+	if err := database.LoadDictionaries("resources"); err != nil {
 		log.Fatal("failed to load dictionaries:", err)
 	}
-	dictionaries = internal.GetDictionaries()
+	dictionaries = database.GetDictionaries()
 
 	internal.ApplyPriorityOrder(globalConfig, dictionaries)
 
