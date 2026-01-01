@@ -1,5 +1,5 @@
 // Package internal load all dictionaries from resources/
-package internal
+package database
 
 import (
 	"database/sql"
@@ -8,11 +8,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-
-	"dinhphu28.com/dictionary/internal/database"
 )
 
-var dictionaries []database.Dictionary
+var dictionaries []Dictionary
 
 func LoadDictionaries(resourceDir string) error {
 	err := filepath.Walk(resourceDir, func(path string, info os.FileInfo, err error) error {
@@ -35,7 +33,7 @@ func LoadDictionaries(resourceDir string) error {
 			return err
 		}
 
-		var m database.Manifest
+		var m Manifest
 		if err := json.Unmarshal(data, &m); err != nil {
 			return err
 		}
@@ -55,7 +53,7 @@ func LoadDictionaries(resourceDir string) error {
 			return err
 		}
 
-		dictionaries = append(dictionaries, database.Dictionary{
+		dictionaries = append(dictionaries, Dictionary{
 			Manifest: m,
 			DB:       db,
 			Path:     path,
@@ -68,6 +66,6 @@ func LoadDictionaries(resourceDir string) error {
 	return err
 }
 
-func GetDictionaries() []database.Dictionary {
+func GetDictionaries() []Dictionary {
 	return dictionaries
 }
