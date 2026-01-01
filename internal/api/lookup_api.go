@@ -47,7 +47,7 @@ func LookupHandler(
 		for _, d := range dictionaries {
 			d := d // capture
 			go func() {
-				entries, err := internal.LookupInDB(d.DB, q)
+				entries, err := database.LookupInDB(d.DB, q)
 				if err != nil {
 					resultsCh <- resultWrap{Err: err}
 					return
