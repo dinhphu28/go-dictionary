@@ -1,5 +1,5 @@
 // Package internal manifest structure to hold application metadata
-package internal
+package database
 
 type Manifest struct {
 	ID        string `json:"id"`
