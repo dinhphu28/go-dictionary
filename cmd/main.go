@@ -5,10 +5,10 @@ import (
 	"log"
 	"net/http"
 
-	"dinhphu28.com/dictionary/internal"
 	"dinhphu28.com/dictionary/internal/api"
 	"dinhphu28.com/dictionary/internal/config"
 	"dinhphu28.com/dictionary/internal/database"
+	"dinhphu28.com/dictionary/internal/lookup"
 	_ "modernc.org/sqlite"
 )
 
@@ -28,7 +28,7 @@ func main() {
 	}
 	dictionaries = database.GetDictionaries()
 
-	internal.ApplyPriorityOrder(globalConfig, dictionaries)
+	lookup.ApplyPriorityOrder(globalConfig, dictionaries)
 
 	log.Printf("Loaded %d dictionaries\n", len(dictionaries))
 
