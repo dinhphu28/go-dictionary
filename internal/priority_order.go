@@ -1,8 +1,12 @@
 package internal
 
-import "sort"
+import (
+	"sort"
 
-func ApplyPriorityOrder(globalConfig GlobalConfig, dictionaries []Dictionary) {
+	"dinhphu28.com/dictionary/internal/config"
+)
+
+func ApplyPriorityOrder(globalConfig config.GlobalConfig, dictionaries []Dictionary) {
 	order := map[string]int{}
 	for i, id := range globalConfig.Priority {
 		order[id] = i

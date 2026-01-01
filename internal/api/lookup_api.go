@@ -10,11 +10,12 @@ import (
 	"time"
 
 	"dinhphu28.com/dictionary/internal"
+	"dinhphu28.com/dictionary/internal/config"
 )
 
 func LookupHandler(
 	dictionaries []internal.Dictionary,
-	globalConfig internal.GlobalConfig,
+	globalConfig config.GlobalConfig,
 ) http.HandlerFunc {
 	return func(
 		w http.ResponseWriter,

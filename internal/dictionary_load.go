@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+
+	"dinhphu28.com/dictionary/internal/database"
 )
 
 var dictionaries []Dictionary
@@ -33,7 +35,7 @@ func LoadDictionaries(resourceDir string) error {
 			return err
 		}
 
-		var m Manifest
+		var m database.Manifest
 		if err := json.Unmarshal(data, &m); err != nil {
 			return err
 		}

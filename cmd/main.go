@@ -7,19 +7,20 @@ import (
 
 	"dinhphu28.com/dictionary/internal"
 	"dinhphu28.com/dictionary/internal/api"
+	"dinhphu28.com/dictionary/internal/config"
 	_ "modernc.org/sqlite"
 )
 
 // ---- global list of loaded dictionaries ----
 
-var globalConfig internal.GlobalConfig
+var globalConfig config.GlobalConfig
 
 // ---- Start of code ----
 var dictionaries []internal.Dictionary
 
 func main() {
-	internal.LoadConfig("config.json")
-	globalConfig = internal.GetGlobalConfig()
+	config.LoadConfig("config.json")
+	globalConfig = config.GetGlobalConfig()
 
 	if err := internal.LoadDictionaries("resources"); err != nil {
 		log.Fatal("failed to load dictionaries:", err)
