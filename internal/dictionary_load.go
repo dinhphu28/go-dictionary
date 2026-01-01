@@ -12,7 +12,7 @@ import (
 	"dinhphu28.com/dictionary/internal/database"
 )
 
-var dictionaries []Dictionary
+var dictionaries []database.Dictionary
 
 func LoadDictionaries(resourceDir string) error {
 	err := filepath.Walk(resourceDir, func(path string, info os.FileInfo, err error) error {
@@ -55,7 +55,7 @@ func LoadDictionaries(resourceDir string) error {
 			return err
 		}
 
-		dictionaries = append(dictionaries, Dictionary{
+		dictionaries = append(dictionaries, database.Dictionary{
 			Manifest: m,
 			DB:       db,
 			Path:     path,
@@ -68,6 +68,6 @@ func LoadDictionaries(resourceDir string) error {
 	return err
 }
 
-func GetDictionaries() []Dictionary {
+func GetDictionaries() []database.Dictionary {
 	return dictionaries
 }

@@ -11,10 +11,11 @@ import (
 
 	"dinhphu28.com/dictionary/internal"
 	"dinhphu28.com/dictionary/internal/config"
+	"dinhphu28.com/dictionary/internal/database"
 )
 
 func LookupHandler(
-	dictionaries []internal.Dictionary,
+	dictionaries []database.Dictionary,
 	globalConfig config.GlobalConfig,
 ) http.HandlerFunc {
 	return func(
