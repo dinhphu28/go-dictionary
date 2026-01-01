@@ -1,5 +1,5 @@
 // Package internal manifest structure to hold application metadata
-package internal
+package lookup
 
 import "dinhphu28.com/dictionary/internal/database"
 

@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"dinhphu28.com/dictionary/internal"
 	"dinhphu28.com/dictionary/internal/config"
 	"dinhphu28.com/dictionary/internal/database"
+	"dinhphu28.com/dictionary/internal/lookup"
 )
 
 func LookupHandler(
@@ -35,7 +35,7 @@ func LookupHandler(
 		}
 
 		type resultWrap struct {
-			Res internal.LookupResult
+			Res lookup.LookupResult
 			Ok  bool
 			Err error
 		}
@@ -60,7 +60,7 @@ func LookupHandler(
 
 				resultsCh <- resultWrap{
 					Ok: true,
-					Res: internal.LookupResult{
+					Res: lookup.LookupResult{
 						ID:         d.Manifest.ID,
 						Dictionary: d.Manifest.ShortName,
 						FullName:   d.Manifest.FullName,
@@ -70,7 +70,7 @@ func LookupHandler(
 			}()
 		}
 
-		var results []internal.LookupResult
+		var results []lookup.LookupResult
 
 		// collect responses
 		for i := 0; i < total; i++ {
