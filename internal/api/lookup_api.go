@@ -34,14 +34,12 @@ func LookupHandler(
 			return
 		}
 
-		results := lookup.LookupAllDictionaries(dictionaries, q)
+		results := lookup.LookupAllDictionariesAndSort(dictionaries, q, globalConfig)
 
 		if len(results) == 0 {
 			http.Error(w, "not found", http.StatusNotFound)
 			return
 		}
-
-		sortResultsByPriority(results, globalConfig.Priority)
 
 		writeJSONResponse(w, results)
 	}
