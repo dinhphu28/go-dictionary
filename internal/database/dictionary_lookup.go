@@ -1,5 +1,5 @@
 // Package internal lookup exact-case-insensitive in one db
-package internal
+package database
 
 import (
 	"database/sql"
