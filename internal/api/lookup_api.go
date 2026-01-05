@@ -30,7 +30,7 @@ func NewLookupHandler(
 
 func (
 	lookupHandler *LookupHandler,
-) Handle(
+) ServeHTTP(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
