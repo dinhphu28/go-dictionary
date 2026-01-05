@@ -29,6 +29,7 @@ func main() {
 
 	log.Printf("Loaded %d dictionaries\n", len(dictionaries))
 
-	router := api.NewRouter(dictionaries, globalConfig)
+	lookupHandler := api.NewLookupHandler(dictionaries, globalConfig)
+	router := api.NewRouter(*lookupHandler)
 	router.StartAPIServer()
 }

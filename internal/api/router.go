@@ -4,23 +4,15 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
-	"dinhphu28.com/dictionary/internal/config"
-	"dinhphu28.com/dictionary/internal/database"
 )
 
 type Router struct {
-	dictionaries []database.Dictionary
-	globalConfig config.GlobalConfig
+	lookupHandler LookupHandler
 }
 
-func NewRouter(
-	dictionaries []database.Dictionary,
-	globalConfig config.GlobalConfig,
-) *Router {
+func NewRouter(lookupHandler LookupHandler) *Router {
 	return &Router{
-		dictionaries: dictionaries,
-		globalConfig: globalConfig,
+		lookupHandler: lookupHandler,
 	}
 }
 
@@ -28,8 +20,8 @@ func (r *Router) StartAPIServer() {
 	mux := http.NewServeMux()
 	handler := CorsMiddleware(mux)
 
-	mux.Handle("/lookup",
-		LookupHandler(r.dictionaries, r.globalConfig),
+	mux.HandleFunc("/lookup",
+		r.lookupHandler.Handle,
 	)
 
 	fmt.Println("Listening at http://localhost:8080")
