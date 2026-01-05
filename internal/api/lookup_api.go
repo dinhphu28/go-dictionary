@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"sort"
 	"strings"
 	"time"
 
@@ -43,31 +42,6 @@ func LookupHandler(
 
 		writeJSONResponse(w, results)
 	}
-}
-
-func sortResultsByPriority(
-	results []lookup.LookupResult,
-	priority []string,
-) {
-	order := make(map[string]int)
-
-	for i, id := range priority {
-		order[id] = i
-	}
-	const big = 1_000_000
-	sort.Slice(results, func(i, j int) bool {
-		oi, okI := order[results[i].ID]
-		oj, okJ := order[results[j].ID]
-
-		if !okI {
-			oi = big
-		}
-		if !okJ {
-			oj = big
-		}
-
-		return oi < oj
-	})
 }
 
 func writeJSONResponse(w http.ResponseWriter, v any) {
