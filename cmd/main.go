@@ -1,14 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net/http"
 
 	"dinhphu28.com/dictionary/internal/api"
 	"dinhphu28.com/dictionary/internal/config"
 	"dinhphu28.com/dictionary/internal/database"
-	"dinhphu28.com/dictionary/internal/lookup"
 	_ "modernc.org/sqlite"
 )
 
@@ -20,7 +17,9 @@ var globalConfig config.GlobalConfig
 var dictionaries []database.Dictionary
 
 func main() {
-	config.LoadConfig("config.json")
+	if err := config.LoadConfig("config.json"); err != nil {
+		log.Fatal("failed to load config:", err)
+	}
 	globalConfig = config.GetGlobalConfig()
 
 	if err := database.LoadDictionaries("resources"); err != nil {
@@ -28,14 +27,8 @@ func main() {
 	}
 	dictionaries = database.GetDictionaries()
 
-	lookup.ApplyPriorityOrder(globalConfig, dictionaries)
-
 	log.Printf("Loaded %d dictionaries\n", len(dictionaries))
 
-	http.Handle("/lookup", api.CorsMiddleware(http.HandlerFunc(
-		api.LookupHandler(dictionaries, globalConfig),
-	)))
-
-	fmt.Println("Listening at http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	router := api.NewRouter(dictionaries, globalConfig)
+	router.StartAPIServer()
 }
