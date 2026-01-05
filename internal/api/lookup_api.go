@@ -13,35 +13,50 @@ import (
 	"dinhphu28.com/dictionary/internal/lookup"
 )
 
-func LookupHandler(
+type LookupHandler struct {
+	dictionaries []database.Dictionary
+	globalConfig config.GlobalConfig
+}
+
+func NewLookupHandler(
 	dictionaries []database.Dictionary,
 	globalConfig config.GlobalConfig,
-) http.HandlerFunc {
-	return func(
-		w http.ResponseWriter,
-		r *http.Request,
-	) {
-		// NOTE: for performance measurement
-		start := time.Now()
-		defer func() {
-			log.Println("lookup total:", time.Since(start))
-		}()
-
-		q := strings.TrimSpace(r.URL.Query().Get("q"))
-		if q == "" {
-			http.Error(w, "missing q parameter", http.StatusBadRequest)
-			return
-		}
-
-		results := lookup.LookupAllDictionariesAndSort(dictionaries, q, globalConfig)
-
-		if len(results) == 0 {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
-		}
-
-		writeJSONResponse(w, results)
+) *LookupHandler {
+	return &LookupHandler{
+		dictionaries: dictionaries,
+		globalConfig: globalConfig,
 	}
+}
+
+func (
+	lookupHandler *LookupHandler,
+) Handle(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
+	// NOTE: for performance measurement
+	start := time.Now()
+	defer func() {
+		log.Println("lookup total:", time.Since(start))
+	}()
+
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	if q == "" {
+		http.Error(w, "missing q parameter", http.StatusBadRequest)
+		return
+	}
+
+	results := lookup.LookupAllDictionariesAndSort(
+		lookupHandler.dictionaries,
+		q,
+		lookupHandler.globalConfig)
+
+	if len(results) == 0 {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	writeJSONResponse(w, results)
 }
 
 func writeJSONResponse(w http.ResponseWriter, v any) {
