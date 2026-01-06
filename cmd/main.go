@@ -6,6 +6,7 @@ import (
 	"dinhphu28.com/dictionary/internal/api"
 	"dinhphu28.com/dictionary/internal/config"
 	"dinhphu28.com/dictionary/internal/database"
+	"dinhphu28.com/dictionary/internal/lookup"
 	_ "modernc.org/sqlite"
 )
 
@@ -29,7 +30,9 @@ func main() {
 
 	log.Printf("Loaded %d dictionaries\n", len(dictionaries))
 
+	approximateLookup := lookup.NewApproximateLookup(dictionaries, globalConfig)
 	lookupHandler := api.NewLookupHandler(dictionaries, globalConfig)
-	router := api.NewRouter(*lookupHandler)
+	lookupHandlerV2 := api.NewLookupHandlerV2(*approximateLookup)
+	router := api.NewRouter(*lookupHandler, *lookupHandlerV2)
 	router.StartAPIServer()
 }
