@@ -58,6 +58,9 @@ func (approximateLookup *ApproximateLookup) LookupWithSuggestion(q string) (Look
 	}
 
 	matches := ranking.RankByEditDistance(q, candidates)
+	if len(matches) == 0 {
+		return LookupResultWithSuggestion{}, nil
+	}
 	firstMatch := matches[0]
 
 	secondaryResults := LookupAllDictionariesAndSort(
