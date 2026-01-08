@@ -32,15 +32,15 @@ func NewDictionaryLookup(
 func (dictLookup *DictionaryLookup) LookupAllDictionariesAndSort(
 	q string,
 ) []LookupResult {
-	lookupResults := lookupAllDictionaries(dictLookup.dictionaries, q)
+	lookupResults := dictLookup.lookupAllDictionaries(q)
 	sortResultsByPriority(lookupResults, dictLookup.globalConfig.Priority)
 	return lookupResults
 }
 
-func lookupAllDictionaries(
-	dictionaries []database.Dictionary,
+func (dictLookup *DictionaryLookup) lookupAllDictionaries(
 	q string,
 ) []LookupResult {
+	dictionaries := dictLookup.dictionaries
 	resultsCh := make(chan resultWrap)
 	total := len(dictionaries)
 
