@@ -5,124 +5,101 @@ import (
 	"io"
 	"log"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
+	"strconv"
+
+	_ "modernc.org/sqlite"
 
 	"dinhphu28.com/dictionary/internal/config"
 	"dinhphu28.com/dictionary/internal/database"
 	"dinhphu28.com/dictionary/internal/lookup"
-	"dinhphu28.com/dictionary/internal/native"
-
-	_ "modernc.org/sqlite"
+	native "dinhphu28.com/dictionary/internal/native"
 )
 
-var (
-	globalConfig config.GlobalConfig
-	dictionaries []database.Dictionary
-)
+// ---------- Message schema (keep simple for Chrome test) ----------
+
+// type Request struct {
+// 	Type  string `json:"type"`
+// 	Query string `json:"query,omitempty"`
+// }
+//
+// type Response struct {
+// 	Type   string      `json:"type"`
+// 	Query  string      `json:"query,omitempty"`
+// 	Result interface{} `json:"result,omitempty"`
+// 	Error  string      `json:"error,omitempty"`
+// }
 
 func main() {
-	// NOTE: stdout is protocol → log to stderr instead
+	// 🔒 CRITICAL: never write logs to stdout
 	log.SetOutput(os.Stderr)
-	log.Println("Native host starting...")
+	log.Println("Native host started")
 
-	// NOTE: allow Ctrl+C / extension disconnect graceful exit
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+	if err := config.LoadConfig("/home/dinhphu28/ghq/github.com/dinhphu28/go-dictionary/config.json"); err != nil {
+		log.Println("failed to load config:", err)
+	}
+	globalConfig := config.GetGlobalConfig()
+	log.Printf("Config loaded: %+v\n", globalConfig)
 
-	go func() {
-		start := time.Now()
-		log.Println("loading config and dictionaries...")
-		if err := config.LoadConfig("config.json"); err != nil {
-			log.Printf("failed to load config: %v", err)
-			native.WriteMessage(native.Response{
-				Type:    native.Error,
-				Message: err.Error(),
-			})
-			os.Exit(1)
-		}
-		globalConfig = config.GetGlobalConfig()
-		log.Printf("config loaded: %+v", globalConfig)
+	if err := database.LoadDictionaries("/home/dinhphu28/ghq/github.com/dinhphu28/go-dictionary/resources"); err != nil {
+		log.Println("failed to load dictionaries:", err)
+	}
+	dictionaries := database.GetDictionaries()
+	log.Printf("Loaded %d dictionaries\n", len(dictionaries))
 
-		if err := database.LoadDictionaries("resources"); err != nil {
-			log.Printf("failed to load dictionaries: %v", err)
-			native.WriteMessage(native.Response{
-				Type:    native.Error,
-				Message: err.Error(),
-			})
-			os.Exit(1)
-		}
-		dictionaries = database.GetDictionaries()
-		log.Printf("dictionaries loaded: %d", len(dictionaries))
-		log.Printf("startup ready in: %s", time.Since(start))
-		native.WriteMessage(native.Response{
-			Type:  native.Loading,
-			Ready: true,
-		})
-	}()
+	approximateLookup := lookup.NewApproximateLookup(dictionaries, globalConfig)
 
 	for {
-		select {
-		case <-sig:
-			log.Println("shutting down native host")
-			return
-		default:
-			raw, err := native.ReadMessage()
-			if err != nil {
-				if err == io.EOF {
-					log.Println("pipe closed - exitting")
-					return
-				}
-				log.Printf("read error: %v", err)
+		raw, err := native.ReadMessage()
+		if err != nil {
+			if err == io.EOF {
+				log.Println("Chrome disconnected, exiting")
 				return
 			}
-			log.Printf("received message: %+v", raw)
-			var req native.Request
-			_ = json.Unmarshal(raw, &req)
-			log.Printf("parsed request: %+v", req)
-			ready := false
-			if len(dictionaries) > 0 {
-				ready = true
-			}
-			switch req.Type {
-			case native.Ping:
-				native.WriteMessage(native.Response{
-					Type:  native.Pong,
-					Ready: ready,
-				})
-			case native.Lookup:
-				if !ready {
-					native.WriteMessage(native.Response{
-						Type:    native.Loading,
-						Ready:   false,
-						Message: "dictionaries are still loading",
-					})
-					continue
-				}
-				approximateLookup := lookup.NewApproximateLookup(dictionaries, globalConfig)
-				result, err := approximateLookup.LookupWithSuggestion(req.Query)
-				if err != nil {
-					native.WriteMessage(native.Response{
-						Type:    native.Error,
-						Query:   req.Query,
-						Message: err.Error(),
-					})
-					continue
-				}
-				native.WriteMessage(native.Response{
-					Type:   native.Result,
-					Query:  req.Query,
-					Ready:  true,
-					Result: result,
-				})
+			log.Printf("read error: %v", err)
+			return
+		}
 
-			default:
-				native.WriteMessage(native.Response{
+		var req native.Request
+		if err := json.Unmarshal(raw, &req); err != nil {
+			log.Printf("bad request: %v", err)
+			_ = native.WriteMessage(native.Response{
+				Type:    native.Error,
+				Message: "invalid request",
+			})
+			continue
+		}
+
+		log.Printf("received: %+v", req)
+
+		switch req.Type {
+
+		case native.Ping:
+			_ = native.WriteMessage(native.Response{
+				Type:    native.Pong,
+				Message: "Dictionaries loaded: " + strconv.Itoa(len(dictionaries)),
+			})
+
+		case native.Lookup:
+			// 🔁 TEMP: fake result to prove Chrome works
+			result, err := approximateLookup.LookupWithSuggestion(req.Query)
+			if err != nil {
+				_ = native.WriteMessage(native.Response{
 					Type:    native.Error,
-					Message: "unknown message type",
+					Message: "lookup error: " + err.Error(),
 				})
+				continue
 			}
+			_ = native.WriteMessage(native.Response{
+				Type:   native.Result,
+				Query:  req.Query,
+				Result: result,
+			})
+
+		default:
+			_ = native.WriteMessage(native.Response{
+				Type:    native.Error,
+				Message: "unknown message type",
+			})
 		}
 	}
 }
