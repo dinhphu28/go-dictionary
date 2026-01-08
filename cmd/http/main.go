@@ -7,6 +7,7 @@ import (
 	"dinhphu28.com/dictionary/internal/config"
 	"dinhphu28.com/dictionary/internal/database"
 	"dinhphu28.com/dictionary/internal/lookup"
+	"dinhphu28.com/dictionary/internal/startup"
 	_ "modernc.org/sqlite"
 )
 
@@ -18,13 +19,15 @@ var globalConfig config.GlobalConfig
 var dictionaries []database.Dictionary
 
 func main() {
-	// if err := config.LoadConfig("config.json"); err != nil {
-	if err := config.LoadConfig("config.json"); err != nil {
+	configPath := startup.ResolvePath("config.json")
+	resourcesPath := startup.ResolvePath("resources")
+
+	if err := config.LoadConfig(configPath); err != nil {
 		log.Fatal("failed to load config:", err)
 	}
 	globalConfig = config.GetGlobalConfig()
 
-	if err := database.LoadDictionaries("resources"); err != nil {
+	if err := database.LoadDictionaries(resourcesPath); err != nil {
 		log.Fatal("failed to load dictionaries:", err)
 	}
 	dictionaries = database.GetDictionaries()

@@ -13,34 +13,24 @@ import (
 	"dinhphu28.com/dictionary/internal/database"
 	"dinhphu28.com/dictionary/internal/lookup"
 	native "dinhphu28.com/dictionary/internal/native"
+	"dinhphu28.com/dictionary/internal/startup"
 )
-
-// ---------- Message schema (keep simple for Chrome test) ----------
-
-// type Request struct {
-// 	Type  string `json:"type"`
-// 	Query string `json:"query,omitempty"`
-// }
-//
-// type Response struct {
-// 	Type   string      `json:"type"`
-// 	Query  string      `json:"query,omitempty"`
-// 	Result interface{} `json:"result,omitempty"`
-// 	Error  string      `json:"error,omitempty"`
-// }
 
 func main() {
 	// 🔒 CRITICAL: never write logs to stdout
 	log.SetOutput(os.Stderr)
 	log.Println("Native host started")
 
-	if err := config.LoadConfig("/home/dinhphu28/ghq/github.com/dinhphu28/go-dictionary/config.json"); err != nil {
+	configPath := startup.ResolvePath("config.json")
+	resourcesPath := startup.ResolvePath("resources")
+
+	if err := config.LoadConfig(configPath); err != nil {
 		log.Println("failed to load config:", err)
 	}
 	globalConfig := config.GetGlobalConfig()
 	log.Printf("Config loaded: %+v\n", globalConfig)
 
-	if err := database.LoadDictionaries("/home/dinhphu28/ghq/github.com/dinhphu28/go-dictionary/resources"); err != nil {
+	if err := database.LoadDictionaries(resourcesPath); err != nil {
 		log.Println("failed to load dictionaries:", err)
 	}
 	dictionaries := database.GetDictionaries()
