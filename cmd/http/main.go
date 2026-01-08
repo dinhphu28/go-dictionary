@@ -18,6 +18,7 @@ var globalConfig config.GlobalConfig
 var dictionaries []database.Dictionary
 
 func main() {
+	// if err := config.LoadConfig("config.json"); err != nil {
 	if err := config.LoadConfig("config.json"); err != nil {
 		log.Fatal("failed to load config:", err)
 	}
