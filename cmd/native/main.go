@@ -36,7 +36,8 @@ func main() {
 	dictionaries := database.GetDictionaries()
 	log.Printf("Loaded %d dictionaries\n", len(dictionaries))
 
-	approximateLookup := lookup.NewApproximateLookup(dictionaries, globalConfig)
+	dictionaryLookup := lookup.NewDictionaryLookup(dictionaries, globalConfig)
+	approximateLookup := lookup.NewApproximateLookup(*dictionaryLookup)
 
 	for {
 		raw, err := native.ReadMessage()

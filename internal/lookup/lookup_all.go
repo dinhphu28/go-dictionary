@@ -14,13 +14,26 @@ type resultWrap struct {
 	Err error
 }
 
-func LookupAllDictionariesAndSort(
+type DictionaryLookup struct {
+	dictionaries []database.Dictionary
+	globalConfig config.GlobalConfig
+}
+
+func NewDictionaryLookup(
 	dictionaries []database.Dictionary,
-	q string,
 	globalConfig config.GlobalConfig,
+) *DictionaryLookup {
+	return &DictionaryLookup{
+		dictionaries: dictionaries,
+		globalConfig: globalConfig,
+	}
+}
+
+func (dictLookup *DictionaryLookup) LookupAllDictionariesAndSort(
+	q string,
 ) []LookupResult {
-	lookupResults := lookupAllDictionaries(dictionaries, q)
-	sortResultsByPriority(lookupResults, globalConfig.Priority)
+	lookupResults := lookupAllDictionaries(dictLookup.dictionaries, q)
+	sortResultsByPriority(lookupResults, dictLookup.globalConfig.Priority)
 	return lookupResults
 }
 
