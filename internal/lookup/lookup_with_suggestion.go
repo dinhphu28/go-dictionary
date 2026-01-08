@@ -1,31 +1,22 @@
 package lookup
 
 import (
-	"dinhphu28.com/dictionary/internal/config"
 	"dinhphu28.com/dictionary/internal/database"
 	"dinhphu28.com/dictionary/pkg/ranking"
 )
 
 type ApproximateLookup struct {
-	dictionaries []database.Dictionary
-	globalConfig config.GlobalConfig
+	dictionaryLookup DictionaryLookup
 }
 
-func NewApproximateLookup(
-	dictionaries []database.Dictionary,
-	globalConfig config.GlobalConfig,
-) *ApproximateLookup {
+func NewApproximateLookup(dictionaryLookup DictionaryLookup) *ApproximateLookup {
 	return &ApproximateLookup{
-		dictionaries: dictionaries,
-		globalConfig: globalConfig,
+		dictionaryLookup: dictionaryLookup,
 	}
 }
 
 func (approximateLookup *ApproximateLookup) LookupWithSuggestion(q string) (LookupResultWithSuggestion, error) {
-	results := LookupAllDictionariesAndSort(
-		approximateLookup.dictionaries,
-		q,
-		approximateLookup.globalConfig)
+	results := approximateLookup.dictionaryLookup.LookupAllDictionariesAndSort(q)
 
 	if len(results) > 0 {
 		return LookupResultWithSuggestion{
@@ -44,8 +35,9 @@ func (approximateLookup *ApproximateLookup) LookupWithSuggestion(q string) (Look
 	// NOTE: Prefer American English (id: oxford_american) database for suggestions.
 	// Find the dictionary in the list.
 	// TODO: Cover case where the preferred dictionary is not found.
+	dictionaries := approximateLookup.dictionaryLookup.dictionaries
 	var preferredDict *database.Dictionary
-	for _, dict := range approximateLookup.dictionaries {
+	for _, dict := range dictionaries {
 		if dict.Manifest.ID == "oxford_american" {
 			preferredDict = &dict
 			break
@@ -63,10 +55,8 @@ func (approximateLookup *ApproximateLookup) LookupWithSuggestion(q string) (Look
 	}
 	firstMatch := matches[0]
 
-	secondaryResults := LookupAllDictionariesAndSort(
-		approximateLookup.dictionaries,
+	secondaryResults := approximateLookup.dictionaryLookup.LookupAllDictionariesAndSort(
 		firstMatch.Word,
-		approximateLookup.globalConfig,
 	)
 
 	suggestWord := []string{}

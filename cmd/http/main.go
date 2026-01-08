@@ -34,7 +34,8 @@ func main() {
 
 	log.Printf("Loaded %d dictionaries\n", len(dictionaries))
 
-	approximateLookup := lookup.NewApproximateLookup(dictionaries, globalConfig)
+	dictionaryLookup := lookup.NewDictionaryLookup(dictionaries, globalConfig)
+	approximateLookup := lookup.NewApproximateLookup(*dictionaryLookup)
 	lookupHandler := api.NewLookupHandler(dictionaries, globalConfig)
 	lookupHandlerV2 := api.NewLookupHandlerV2(*approximateLookup)
 	router := api.NewRouter(*lookupHandler, *lookupHandlerV2)
