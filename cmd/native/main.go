@@ -39,6 +39,8 @@ func main() {
 	dictionaryLookup := lookup.NewDictionaryLookup(dictionaries, globalConfig)
 	approximateLookup := lookup.NewApproximateLookup(*dictionaryLookup)
 
+	ready := len(dictionaries) > 0
+
 	for {
 		raw, err := native.ReadMessage()
 		if err != nil {
@@ -67,6 +69,7 @@ func main() {
 		case native.Ping:
 			_ = native.WriteMessage(native.Response{
 				Type:    native.Pong,
+				Ready:   ready,
 				Message: "Dictionaries loaded: " + strconv.Itoa(len(dictionaries)),
 			})
 
