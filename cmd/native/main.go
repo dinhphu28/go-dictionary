@@ -85,6 +85,7 @@ func main() {
 			}
 			_ = native.WriteMessage(native.Response{
 				Type:   native.Result,
+				Ready: true,
 				Query:  req.Query,
 				Result: result,
 			})
