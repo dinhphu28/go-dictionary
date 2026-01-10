@@ -36,8 +36,7 @@ func main() {
 
 	dictionaryLookup := lookup.NewDictionaryLookup(dictionaries, globalConfig)
 	approximateLookup := lookup.NewApproximateLookup(*dictionaryLookup)
-	lookupHandler := api.NewLookupHandler(dictionaries, globalConfig)
 	lookupHandlerV2 := api.NewLookupHandlerV2(*approximateLookup)
-	router := api.NewRouter(*lookupHandler, *lookupHandlerV2)
+	router := api.NewRouter(*lookupHandlerV2)
 	router.StartAPIServer()
 }
