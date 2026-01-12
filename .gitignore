@@ -7,8 +7,8 @@
 *.dll
 *.so
 *.dylib
-http
-native
+/http
+/native
 
 resources/
 
