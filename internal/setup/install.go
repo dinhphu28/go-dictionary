@@ -47,9 +47,10 @@ func copyDir(src, dst string) error {
 
 func Install(paths Paths) error {
 	// 1. Install binary
+	bin := filepath.Join(paths.BinDir, "dictionary")
 	if err := copyFile(
 		"./dictionary",
-		filepath.Join(paths.BinDir, "dictionary"),
+		bin,
 		0o755,
 	); err != nil {
 		return fmt.Errorf("install binary: %w", err)
@@ -86,6 +87,20 @@ func Install(paths Paths) error {
 		if err := copyDir("./resources", filepath.Join(paths.DataDir, "resources")); err != nil {
 			return err
 		}
+	}
+
+	// 5. Install browser manifests
+
+	chrome, firefox := detectBrowsers()
+
+	if chrome {
+		manifest := chromeManifest(bin, "kpgiaenkniiaacjbiipbmcdjfbjmgmll")
+		installChromeManifest(manifest)
+	}
+
+	if firefox {
+		manifest := firefoxManifest(bin)
+		installFirefoxManifest(manifest)
 	}
 
 	return nil
