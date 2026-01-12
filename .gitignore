@@ -9,6 +9,7 @@
 *.dylib
 /http
 /native
+/dictionary
 
 resources/
 
