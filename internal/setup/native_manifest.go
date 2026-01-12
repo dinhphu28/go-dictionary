@@ -43,7 +43,7 @@ func installNativeManifest() error {
 		Path:        bin,
 		Type:        "stdio",
 		Allowed: []string{
-			"chrome-extension://YOUR_EXTENSION_ID/",
+			"chrome-extension://kpgiaenkniiaacjbiipbmcdjfbjmgmll/",
 		},
 	}
 
