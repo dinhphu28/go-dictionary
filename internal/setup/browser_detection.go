@@ -47,7 +47,7 @@ func firefoxManifest(binaryPath string) []byte {
 		"path":        binaryPath,
 		"type":        "stdio",
 		"allowed_extensions": []string{
-			"dictionary@dinhphu28.com",
+			"503e78dec27c89515afd99f62ecf12e3305a204d@temporary-addon",
 		},
 	}
 	b, _ := json.MarshalIndent(m, "", "  ")
