@@ -19,6 +19,8 @@ func main() {
 			log.Fatalf("install failed: %v", err)
 		}
 
+		setup.InstallNativeMessagingManifests(paths.BinPath)
+
 		fmt.Println("✅ Installation complete")
 		fmt.Println("Make sure ~/.local/bin is in your PATH")
 	}

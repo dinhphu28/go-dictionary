@@ -2,48 +2,10 @@ package setup
 
 import (
 	"fmt"
-	"io"
+	"log"
 	"os"
 	"path/filepath"
 )
-
-func copyFile(src, dst string, perm os.FileMode) error {
-	in, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-
-	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
-		return err
-	}
-
-	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, perm)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, in)
-	return err
-}
-
-func copyDir(src, dst string) error {
-	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		rel, _ := filepath.Rel(src, path)
-		target := filepath.Join(dst, rel)
-
-		if info.IsDir() {
-			return os.MkdirAll(target, info.Mode())
-		}
-
-		return copyFile(path, target, info.Mode())
-	})
-}
 
 func Install(paths Paths) error {
 	// 1. Install binary
@@ -56,14 +18,11 @@ func Install(paths Paths) error {
 		return err
 	}
 
-	// 4. Install resources
+	// 2. Install resources
 	resourcesPath := filepath.Join(paths.DataDir, "resources")
 	if err := installResources(resourcesPath); err != nil {
 		return err
 	}
-
-	// 5. Install browser manifests
-	installNativeMessagingManifests(binPath)
 
 	return nil
 }
@@ -108,17 +67,21 @@ func installConfigs(paths Paths) error {
 	return nil
 }
 
-func installNativeMessagingManifests(bin string) {
+func InstallNativeMessagingManifests(bin string) {
 	chrome, firefox := detectBrowsers()
 
 	if chrome {
 		manifest := chromeManifest(bin, "kpgiaenkniiaacjbiipbmcdjfbjmgmll")
-		installChromeManifest(manifest)
+		if err := installChromeManifest(manifest); err != nil {
+			log.Fatalf("install chrome native messaging manifest failed: %v", err)
+		}
 	}
 
 	if firefox {
 		manifest := firefoxManifest(bin)
-		installFirefoxManifest(manifest)
+		if err := installFirefoxManifest(manifest); err != nil {
+			log.Fatalf("install firefox native messaging manifest failed: %v", err)
+		}
 	}
 }
 
