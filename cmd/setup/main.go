@@ -8,14 +8,18 @@ import (
 )
 
 func main() {
+	osinfo := setup.DetectOS()
+	fmt.Println("Detected OS:", osinfo.Name)
 	fmt.Println("Installing dictionary...")
 
-	paths := setup.DefaultPaths()
+	if osinfo.IsLinux {
+		paths := setup.DefaultPaths()
 
-	if err := setup.Install(paths); err != nil {
-		log.Fatalf("install failed: %v", err)
+		if err := setup.Install(paths); err != nil {
+			log.Fatalf("install failed: %v", err)
+		}
+
+		fmt.Println("✅ Installation complete")
+		fmt.Println("Make sure ~/.local/bin is in your PATH")
 	}
-
-	fmt.Println("✅ Installation complete")
-	fmt.Println("Make sure ~/.local/bin is in your PATH")
 }

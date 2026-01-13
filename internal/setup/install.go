@@ -47,16 +47,40 @@ func copyDir(src, dst string) error {
 
 func Install(paths Paths) error {
 	// 1. Install binary
-	bin := filepath.Join(paths.BinDir, "dictionary")
+	binPath := paths.BinPath
+	if err := installBinary(binPath); err != nil {
+		return err
+	}
+
+	if err := installConfigs(paths); err != nil {
+		return err
+	}
+
+	// 4. Install resources
+	resourcesPath := filepath.Join(paths.DataDir, "resources")
+	if err := installResources(resourcesPath); err != nil {
+		return err
+	}
+
+	// 5. Install browser manifests
+	installNativeMessagingManifests(binPath)
+
+	return nil
+}
+
+func installBinary(path string) error {
 	if err := copyFile(
 		"./dictionary",
-		bin,
+		path,
 		0o755,
 	); err != nil {
 		return fmt.Errorf("install binary: %w", err)
 	}
+	return nil
+}
 
-	// 2. Install config.json (only if not exists)
+func installConfigs(paths Paths) error {
+	// 1. Install config.json (only if not exists)
 	cfgDst := filepath.Join(paths.ConfigDir, "config.json")
 	if _, err := os.Stat(cfgDst); os.IsNotExist(err) {
 		if err := copyFile("./config.json", cfgDst, 0o644); err != nil {
@@ -64,7 +88,7 @@ func Install(paths Paths) error {
 		}
 	}
 
-	// 3. Install runtime.json
+	// 2. Install runtime.json
 	runtimeCfg := filepath.Join(paths.ConfigDir, "runtime.json")
 	if err := os.MkdirAll(paths.ConfigDir, 0o755); err != nil {
 		return err
@@ -81,16 +105,10 @@ func Install(paths Paths) error {
 			return err
 		}
 	}
+	return nil
+}
 
-	// 4. Install resources
-	if _, err := os.Stat("./resources"); err == nil {
-		if err := copyDir("./resources", filepath.Join(paths.DataDir, "resources")); err != nil {
-			return err
-		}
-	}
-
-	// 5. Install browser manifests
-
+func installNativeMessagingManifests(bin string) {
 	chrome, firefox := detectBrowsers()
 
 	if chrome {
@@ -102,6 +120,13 @@ func Install(paths Paths) error {
 		manifest := firefoxManifest(bin)
 		installFirefoxManifest(manifest)
 	}
+}
 
+func installResources(resourcesPath string) error {
+	if _, err := os.Stat("./resources"); err == nil {
+		if err := copyDir("./resources", resourcesPath); err != nil {
+			return err
+		}
+	}
 	return nil
 }
