@@ -14,6 +14,7 @@ import (
 	"dinhphu28.com/dictionary/internal/api"
 	"dinhphu28.com/dictionary/internal/config"
 	"dinhphu28.com/dictionary/internal/database"
+	"dinhphu28.com/dictionary/internal/doctor"
 	"dinhphu28.com/dictionary/internal/lookup"
 	"dinhphu28.com/dictionary/internal/native"
 	"dinhphu28.com/dictionary/internal/setup"
@@ -24,6 +25,9 @@ func main() {
 
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
+		case "doctor":
+			doctor.RunDoctor()
+			return
 
 		case "native":
 			runNative()
