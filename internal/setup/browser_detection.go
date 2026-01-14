@@ -40,14 +40,14 @@ func chromeManifest(binaryPath, extID string) []byte {
 	return b
 }
 
-func firefoxManifest(binaryPath string) []byte {
+func firefoxManifest(binaryPath string, extID string) []byte {
 	m := map[string]any{
 		"name":        "com.dinhphu28.dictionary",
 		"description": "Dictionary native host",
 		"path":        binaryPath,
 		"type":        "stdio",
 		"allowed_extensions": []string{
-			"503e78dec27c89515afd99f62ecf12e3305a204d@temporary-addon",
+			extID,
 		},
 	}
 	b, _ := json.MarshalIndent(m, "", "  ")
@@ -62,9 +62,9 @@ func installChromeManifest(data []byte) error {
 	}
 
 	for _, dir := range dirs {
-		if err := os.MkdirAll(dir, 0755); err == nil {
+		if err := os.MkdirAll(dir, 0o755); err == nil {
 			path := filepath.Join(dir, "com.dinhphu28.dictionary.json")
-			os.WriteFile(path, data, 0644)
+			os.WriteFile(path, data, 0o644)
 		}
 	}
 	return nil
@@ -73,8 +73,8 @@ func installChromeManifest(data []byte) error {
 func installFirefoxManifest(data []byte) error {
 	home, _ := os.UserHomeDir()
 	dir := filepath.Join(home, ".mozilla", "native-messaging-hosts")
-	os.MkdirAll(dir, 0755)
+	os.MkdirAll(dir, 0o755)
 
 	path := filepath.Join(dir, "com.dinhphu28.dictionary.json")
-	return os.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0o644)
 }

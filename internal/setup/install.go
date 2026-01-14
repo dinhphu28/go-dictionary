@@ -78,7 +78,7 @@ func InstallNativeMessagingManifests(bin string) {
 	}
 
 	if firefox {
-		manifest := firefoxManifest(bin)
+		manifest := firefoxManifest(bin, "503e78dec27c89515afd99f62ecf12e3305a204d@temporary-addon")
 		if err := installFirefoxManifest(manifest); err != nil {
 			log.Fatalf("install firefox native messaging manifest failed: %v", err)
 		}
