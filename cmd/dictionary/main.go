@@ -6,18 +6,14 @@ import (
 	"io"
 	"log"
 	"os"
-	"path/filepath"
 	"strconv"
 
 	_ "modernc.org/sqlite"
 
 	"dinhphu28.com/dictionary/internal/api"
-	"dinhphu28.com/dictionary/internal/config"
-	"dinhphu28.com/dictionary/internal/database"
 	"dinhphu28.com/dictionary/internal/doctor"
-	"dinhphu28.com/dictionary/internal/lookup"
+	"dinhphu28.com/dictionary/internal/engine"
 	"dinhphu28.com/dictionary/internal/native"
-	"dinhphu28.com/dictionary/internal/setup"
 )
 
 func main() {
@@ -48,26 +44,11 @@ func runNative() {
 	log.SetOutput(os.Stderr)
 	log.Println("Native host started")
 
-	paths := setup.DefaultPaths()
-	configPath := filepath.Join(paths.ConfigDir, "config.json")
-	resourcesPath := filepath.Join(paths.DataDir, "resources")
+	engine.StartEngine()
+	approximateLookup := engine.GetApproximateLookup()
 
-	if err := config.LoadConfig(configPath); err != nil {
-		log.Println("failed to load config:", err)
-	}
-	globalConfig := config.GetGlobalConfig()
-	log.Printf("Config loaded: %+v\n", globalConfig)
-
-	if err := database.LoadDictionaries(resourcesPath); err != nil {
-		log.Println("failed to load dictionaries:", err)
-	}
-	dictionaries := database.GetDictionaries()
-	log.Printf("Loaded %d dictionaries\n", len(dictionaries))
-
-	dictionaryLookup := lookup.NewDictionaryLookup(dictionaries, globalConfig)
-	approximateLookup := lookup.NewApproximateLookup(*dictionaryLookup)
-
-	ready := len(dictionaries) > 0
+	ready := engine.Ready()
+	loadedDictionaries := engine.LoadedDictionaries()
 
 	for {
 		raw, err := native.ReadMessage()
@@ -98,7 +79,7 @@ func runNative() {
 			_ = native.WriteMessage(native.Response{
 				Type:    native.Pong,
 				Ready:   ready,
-				Message: "Dictionaries loaded: " + strconv.Itoa(len(dictionaries)),
+				Message: "Dictionaries loaded: " + strconv.Itoa(loadedDictionaries),
 			})
 
 		case native.Lookup:
@@ -131,25 +112,10 @@ func runHTTP() {
 	// your existing HTTP server logic
 	fmt.Println("HTTP mode")
 
-	paths := setup.DefaultPaths()
-	configPath := filepath.Join(paths.ConfigDir, "config.json")
-	resourcesPath := filepath.Join(paths.DataDir, "resources")
+	engine.StartEngine()
+	approximateLookup := engine.GetApproximateLookup()
 
-	if err := config.LoadConfig(configPath); err != nil {
-		log.Fatal("failed to load config:", err)
-	}
-	globalConfig := config.GetGlobalConfig()
-
-	if err := database.LoadDictionaries(resourcesPath); err != nil {
-		log.Fatal("failed to load dictionaries:", err)
-	}
-	dictionaries := database.GetDictionaries()
-
-	log.Printf("Loaded %d dictionaries\n", len(dictionaries))
-
-	dictionaryLookup := lookup.NewDictionaryLookup(dictionaries, globalConfig)
-	approximateLookup := lookup.NewApproximateLookup(*dictionaryLookup)
-	lookupHandlerV2 := api.NewLookupHandlerV2(*approximateLookup)
+	lookupHandlerV2 := api.NewLookupHandlerV2(approximateLookup)
 	router := api.NewRouter(*lookupHandlerV2)
 	router.StartAPIServer()
 }
