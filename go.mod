@@ -2,7 +2,10 @@ module dinhphu28.com/dictionary
 
 go 1.25.5
 
-require modernc.org/sqlite v1.42.1
+require (
+	github.com/dinhphu28/dictionary v0.0.0-20260115030645-a54568c5d807
+	modernc.org/sqlite v1.42.1
+)
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
