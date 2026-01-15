@@ -1,6 +1,6 @@
 package native
 
-import "dinhphu28.com/dictionary/internal/lookup"
+import "github.com/dinhphu28/dictionary/dictionary"
 
 type MessageRequestType int
 
@@ -26,9 +26,9 @@ type Request struct {
 }
 
 type Response struct {
-	Type    MessageResponseType               `json:"type"`  // "result" | "error" | "pong" | "loading"
-	Query   string                            `json:"query"` // echoed word
-	Ready   bool                              `json:"ready"`
-	Result  lookup.LookupResultWithSuggestion `json:"result"`
-	Message string                            `json:"message"`
+	Type  MessageResponseType `json:"type"`  // "result" | "error" | "pong" | "loading"
+	Query string              `json:"query"` // echoed word
+	Ready bool                `json:"ready"`
+	Result  dictionary.LookupResultWithSuggestion `json:"result"`
+	Message string                                `json:"message"`
 }

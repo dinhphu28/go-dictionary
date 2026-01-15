@@ -4,16 +4,17 @@ import (
 	"net/http"
 	"strings"
 
-	"dinhphu28.com/dictionary/internal/lookup"
+	"github.com/dinhphu28/dictionary"
 )
 
 type LookupHandlerV2 struct {
-	approximateLookup lookup.ApproximateLookup
+	// approximateLookup lookup.ApproximateLookup
 }
 
-func NewLookupHandlerV2(approximateLookup lookup.ApproximateLookup) *LookupHandlerV2 {
+// func NewLookupHandlerV2(approximateLookup lookup.ApproximateLookup) *LookupHandlerV2 {
+func NewLookupHandlerV2() *LookupHandlerV2 {
 	return &LookupHandlerV2{
-		approximateLookup: approximateLookup,
+		// approximateLookup: approximateLookup,
 	}
 }
 
@@ -27,7 +28,8 @@ func (lookupHandler *LookupHandlerV2) ServeHTTP(
 		return
 	}
 
-	result, err := lookupHandler.approximateLookup.LookupWithSuggestion(q)
+	// result, err := lookupHandler.approximateLookup.LookupWithSuggestion(q)
+	result, err := dictionary.Lookup(q)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return

@@ -11,9 +11,9 @@ import (
 	_ "modernc.org/sqlite"
 
 	"dinhphu28.com/dictionary/internal/api"
-	"dinhphu28.com/dictionary/internal/doctor"
-	"dinhphu28.com/dictionary/internal/engine"
 	"dinhphu28.com/dictionary/internal/native"
+	"github.com/dinhphu28/dictionary"
+	"github.com/dinhphu28/dictionary/doctor"
 )
 
 func main() {
@@ -44,11 +44,10 @@ func runNative() {
 	log.SetOutput(os.Stderr)
 	log.Println("Native host started")
 
-	engine.StartEngine()
-	approximateLookup := engine.GetApproximateLookup()
+	dictionary.StartEngine()
 
-	ready := engine.Ready()
-	loadedDictionaries := engine.LoadedDictionaries()
+	ready := dictionary.Ready()
+	loadedDictionaries := dictionary.LoadedDictionaries()
 
 	for {
 		raw, err := native.ReadMessage()
@@ -83,8 +82,7 @@ func runNative() {
 			})
 
 		case native.Lookup:
-			// 🔁 TEMP: fake result to prove Chrome works
-			result, err := approximateLookup.LookupWithSuggestion(req.Query)
+			result, err := dictionary.Lookup(req.Query)
 			if err != nil {
 				_ = native.WriteMessage(native.Response{
 					Type:    native.Error,
@@ -92,6 +90,7 @@ func runNative() {
 				})
 				continue
 			}
+
 			_ = native.WriteMessage(native.Response{
 				Type:   native.Result,
 				Ready:  true,
@@ -109,13 +108,10 @@ func runNative() {
 }
 
 func runHTTP() {
-	// your existing HTTP server logic
 	fmt.Println("HTTP mode")
 
-	engine.StartEngine()
-	approximateLookup := engine.GetApproximateLookup()
-
-	lookupHandlerV2 := api.NewLookupHandlerV2(approximateLookup)
+	dictionary.StartEngine()
+	lookupHandlerV2 := api.NewLookupHandlerV2()
 	router := api.NewRouter(*lookupHandlerV2)
 	router.StartAPIServer()
 }
