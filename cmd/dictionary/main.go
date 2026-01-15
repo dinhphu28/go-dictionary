@@ -1,19 +1,16 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"strconv"
 
 	_ "modernc.org/sqlite"
 
 	"dinhphu28.com/dictionary/internal/api"
-	"dinhphu28.com/dictionary/internal/native"
 	"github.com/dinhphu28/dictionary"
 	"github.com/dinhphu28/dictionary/doctor"
+	"github.com/dinhphu28/dictionary/native"
 )
 
 func main() {
@@ -26,7 +23,7 @@ func main() {
 			return
 
 		case "native":
-			runNative()
+			native.RunNative()
 			return
 
 		case "http":
@@ -36,75 +33,7 @@ func main() {
 	}
 
 	// Default behavior
-	runNative()
-}
-
-func runNative() {
-	// 🔒 CRITICAL: never write logs to stdout
-	log.SetOutput(os.Stderr)
-	log.Println("Native host started")
-
-	dictionary.StartEngine()
-
-	ready := dictionary.Ready()
-	loadedDictionaries := dictionary.LoadedDictionaries()
-
-	for {
-		raw, err := native.ReadMessage()
-		if err != nil {
-			if err == io.EOF {
-				log.Println("Chrome disconnected, exiting")
-				return
-			}
-			log.Printf("read error: %v", err)
-			return
-		}
-
-		var req native.Request
-		if err := json.Unmarshal(raw, &req); err != nil {
-			log.Printf("bad request: %v", err)
-			_ = native.WriteMessage(native.Response{
-				Type:    native.Error,
-				Message: "invalid request",
-			})
-			continue
-		}
-
-		log.Printf("received: %+v", req)
-
-		switch req.Type {
-
-		case native.Ping:
-			_ = native.WriteMessage(native.Response{
-				Type:    native.Pong,
-				Ready:   ready,
-				Message: "Dictionaries loaded: " + strconv.Itoa(loadedDictionaries),
-			})
-
-		case native.Lookup:
-			result, err := dictionary.Lookup(req.Query)
-			if err != nil {
-				_ = native.WriteMessage(native.Response{
-					Type:    native.Error,
-					Message: "lookup error: " + err.Error(),
-				})
-				continue
-			}
-
-			_ = native.WriteMessage(native.Response{
-				Type:   native.Result,
-				Ready:  true,
-				Query:  req.Query,
-				Result: result,
-			})
-
-		default:
-			_ = native.WriteMessage(native.Response{
-				Type:    native.Error,
-				Message: "unknown message type",
-			})
-		}
-	}
+	native.RunNative()
 }
 
 func runHTTP() {
