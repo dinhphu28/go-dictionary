@@ -3,7 +3,7 @@ module dinhphu28.com/dictionary
 go 1.25.5
 
 require (
-	github.com/dinhphu28/dictionary v0.1.1
+	github.com/dinhphu28/dictionary v0.1.2-rc.3
 	modernc.org/sqlite v1.44.0
 )
 
